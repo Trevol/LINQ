@@ -12,7 +12,7 @@
 // License for the specific  language  governing  permissions  and  limitations 
 // under the License.
 
-import {jsn, fruits, people, pets, simpleArray, mix, phrase} from "./data";
+import {jsn, fruits, people, pets, simpleArray, msdn, mix, phrase, unorderedMix} from "./data";
 import {assert} from "chai";
 import {asEnumerable, Range, Repeat} from "../lib/linq";
 
@@ -108,6 +108,27 @@ describe('Reentrancy -', function () {
         assert.equal(iterator.next().value, 'b');
         assert.equal(iterator.next().value, 'a');
         assert.isTrue(iterator.next().done);
+    });
+
+
+    it('ThenBy()', function () {
+        var enumerable = asEnumerable(unorderedMix);
+        var sorted = enumerable.ToArray().sort();
+        var iterable = enumerable.OrderBy().ThenBy();
+        
+        var iterator = iterable[Symbol.iterator]()
+        for (let exp of sorted) {
+            var actual = iterator.next().value;
+            if (isNaN(<any>exp) && isNaN(<any>actual)) continue;
+            assert.equal(actual, exp);
+        }
+
+        var iterator = iterable[Symbol.iterator]()
+        for (let exp of sorted) {
+            var actual = iterator.next().value;
+            if (isNaN(<any>exp) && isNaN(<any>actual)) continue;
+            assert.equal(actual, exp);
+        }
     });
 
 
@@ -300,11 +321,15 @@ describe('Reentrancy -', function () {
         assert.equal("Hedlund, Magnus - Daisy", iterator.next().value);
         assert.equal("Adams, Terry - Barley", iterator.next().value);
         assert.equal("Adams, Terry - Boots", iterator.next().value);
+        assert.equal("Adams, Terry - Barley", iterator.next().value);
+        assert.equal("Adams, Terry - Boots", iterator.next().value);
         assert.equal("Weiss, Charlotte - Whiskers", iterator.next().value);
         assert.isTrue(iterator.next().done);
 
         iterator = iterable[Symbol.iterator]()
         assert.equal("Hedlund, Magnus - Daisy", iterator.next().value);
+        assert.equal("Adams, Terry - Barley", iterator.next().value);
+        assert.equal("Adams, Terry - Boots", iterator.next().value);
         assert.equal("Adams, Terry - Barley", iterator.next().value);
         assert.equal("Adams, Terry - Boots", iterator.next().value);
         assert.equal("Weiss, Charlotte - Whiskers", iterator.next().value);
@@ -313,18 +338,18 @@ describe('Reentrancy -', function () {
 
 
     it('GroupJoin()', function () {
-        var iterable = asEnumerable(people)
+        var iterable = asEnumerable(msdn)
             .GroupJoin(pets,
             person => person,
             pet => pet.Owner,
             (person, petCollection) => {
                 return {
                     Owner: person.Name,
-                    Pets: asEnumerable(petCollection)
-                        .Select(pet => pet.Name)
-                        .ToArray()
+                    Pets: asEnumerable(petCollection).Select(pet => pet.Name)
+                                             .ToArray()
                 };
             });
+
         var iterator = iterable[Symbol.iterator]();
         var result = iterator.next().value;
         assert.isTrue(Array.isArray(result.Pets))
@@ -342,8 +367,8 @@ describe('Reentrancy -', function () {
         assert.equal("Whiskers", result.Pets[0]);
         assert.isTrue(iterator.next().done);
 
-        iterator = iterable[Symbol.iterator]();
-        result = iterator.next().value;
+        var iterator = iterable[Symbol.iterator]();
+        var result = iterator.next().value;
         assert.isTrue(Array.isArray(result.Pets))
         assert.equal("Hedlund, Magnus", result.Owner);
         assert.equal(1, result.Pets.length);
@@ -370,7 +395,7 @@ describe('Reentrancy -', function () {
         assert.equal(1, result.length);
         result = iterator.next().value;
         assert.equal(4, result.key);
-        assert.equal(2, result.length);
+        assert.equal(3, result.length);
         result = iterator.next().value;
         assert.equal(1, result.key);
         assert.equal(1, result.length);
@@ -382,7 +407,7 @@ describe('Reentrancy -', function () {
         assert.equal(1, result.length);
         result = iterator.next().value;
         assert.equal(4, result.key);
-        assert.equal(2, result.length);
+        assert.equal(3, result.length);
         result = iterator.next().value;
         assert.equal(1, result.key);
         assert.equal(1, result.length);
@@ -442,6 +467,15 @@ describe('Reentrancy -', function () {
         assert.equal(3, iterator.next().value);
         assert.equal(4, iterator.next().value);
         assert.isTrue(iterator.next().done);
+    });
+    
+
+
+    it('tzachshabtay', function () {
+        var paths = ["1", "aa"]
+
+        assert.doesNotThrow(() => {asEnumerable(paths).Where(p => p === "aa").Any(q => true)});
+        assert.doesNotThrow(() => {asEnumerable(paths).Where(v => v === "aa").Any()});         
     });
     
 });

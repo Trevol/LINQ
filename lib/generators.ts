@@ -63,7 +63,7 @@ export function* ChunkBy<T, K, E, V>(target: Iterable<T>,
         box.push(elementSelector(value));                        
     }
 
-    if (key && box) {
+    if (box) {
         yield resultSelector(key, box);
     } 
 }
@@ -140,7 +140,7 @@ export function* SkipWhile<T>(target: Iterable<T>, predicate: (x: T, i: number) 
 export function* TakeWhile<T>(target: Iterable<T>, predicate: (x: T, i: number) => Boolean) {
     let index = 0;
     for (let value of target) {
-        if (!predicate(value, index++)) return;
+        if (!predicate(value, index++)) break;
         yield value;
     }
 }
@@ -212,8 +212,9 @@ export function* UnionFast<T>(first: Iterable<T>, second: Iterable<T>) {
 export function* Join<T, K, R, I>(target: Iterable<T>, oKeySelect: (x: T) => K, transform: (x: T, a: any) => R, map: Map<K, Array<I>>) {
     for (let value of target) {
         let key = oKeySelect(value);
+        if (!key) continue;
         let innerSet = map.get(key);
-        if ('undefined' === typeof innerSet) continue;
+        if (!innerSet) continue;
         for (let inner of innerSet) {
             yield transform(value, inner);
         }
@@ -223,9 +224,11 @@ export function* Join<T, K, R, I>(target: Iterable<T>, oKeySelect: (x: T) => K, 
 
 export function* GroupJoin<T, K, R, I>(target: Iterable<T>, oKeySelect: (x: T) => K, transform: (a: T, b: Iterable<I>) => R, map: Map<K, Array<I>>) {
     for (let value of target) {
+        let innerSet = undefined;
         let key = oKeySelect(value);
-        let innerSet = map.get(key);
-        if ('undefined' === typeof innerSet) continue;
+        if (key){
+            innerSet = map.get(key);
+        }
         yield transform(value, innerSet);
     }
 }
@@ -248,7 +251,7 @@ export function* SelectMany<T, V, R>(target: Iterable<T>, selector: (x: T, i: nu
 }
 
 
-export function* Concat<T>(target: Iterable<T>, second: Iterable<T>) {
+export function* Concat<T, V>(target: Iterable<T>, second: Iterable<V>) {
     yield* target;
     yield* second;
 }

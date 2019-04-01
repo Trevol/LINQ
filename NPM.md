@@ -1,5 +1,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/ENikS/LINQ/badge.svg?branch=master)](https://coveralls.io/github/ENikS/LINQ?branch=master)
 [![Dependency Status](https://dependencyci.com/github/ENikS/LINQ/badge)](https://dependencyci.com/github/ENikS/LINQ)
+[![License](https://img.shields.io/badge/license-apache%202.0-60C060.svg)](https://github.com/ENikS/LINQ/blob/master/LICENSE)
+
 ## Language-Integrated Query (LINQ) 
 
 **linq-es2015** is a complete implementation of [LINQ (Language-Integrated Query)](https://en.wikipedia.org/wiki/Language_Integrated_Query) pattern and enables you to express traversal, filter, and projection operations over data in JavaScript or any related programming languages (TypeScript, CoffeeScript, etc). <br/>
@@ -25,9 +27,13 @@ var count =  Enumerable.asEnumerable( [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] )
 ```
 For live examples please follow links to ([Node](https://tonicdev.com/eniks/using-linq)) or ([Browser](https://jsfiddle.net/ENikS/pyvjcfa0)).  
 
-### Using in browser
-[Browserified](//browserify.org/) [standalone](//github.com/substack/node-browserify#usage) [UMD](//github.com/umdjs/umd) module is located in ./dist directory and could be accessed through [NPMCDN service](//npmcdn.com). Both [linq.js](//npmcdn.com/linq-es2015/dist/linq.js) and [linq.min.js](//npmcdn.com/linq-es2015/dist/linq.min.js) are available. [[See Example](//jsfiddle.net/ENikS/pyvjcfa0/)]
+## Using in browser
+[Browserified](//browserify.org/) [standalone](//github.com/substack/node-browserify#usage) [UMD](//github.com/umdjs/umd) module is located in ./dist directory and could be accessed through [NPM CDN service](//unpkg.com). Both [linq.js](//unpkg.com/linq-es2015/dist/linq.js) and [linq.min.js](//unpkg.com/linq-es2015/dist/linq.min.js) are available. <br/>[[See Example](//jsfiddle.net/ENikS/pyvjcfa0/)]
 
+
+## Using in Angular
+The same package could be used on a server as well as on the client. The package does not require any special handling and used as any other module.
+[[See Example](https://github.com/ENikS/LINQ/tree/examples/Angular)]
 
 ## Naming Convention
 When library is used in TypeScript method names follow original C# convention (Name starts with capital letter). It is done for compatibility reasons so that code could be cut/pasted from C# with just minor reformatting.
@@ -37,9 +43,12 @@ If used directly in JavaScript names follow [camelCase](https://en.wikipedia.org
 *  [Library Reference](https://github.com/ENikS/LINQ/wiki)
 *  [LINQ (Language-Integrated Query)](https://msdn.microsoft.com/en-us/library/bb397926.aspx)
 *  [Original Documentation (C#)](https://msdn.microsoft.com/en-us/library/system.linq.enumerable.aspx)
-*  [Example Projects](https://github.com/ENikS/LINQ/tree/examples)
+
+## Example Projects
 *  [Browser Example](https://jsfiddle.net/ENikS/pyvjcfa0/)
 *  [Node Example](https://tonicdev.com/eniks/using-linq)
-
+*  [Angular 2 Example](https://github.com/ENikS/LINQ/tree/examples/Angular)
+*  [Node Console Example](https://github.com/ENikS/LINQ/tree/examples/Node)
+*  [TypeScript/JavaScript Web Example](https://github.com/ENikS/LINQ/tree/examples/TypeScript)
 
 

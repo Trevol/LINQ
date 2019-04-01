@@ -33,6 +33,10 @@ export var defGrouping = (a: any, b: any) => {
     return b;
 };
 
+export var defCompare = (a: any, b: any): number => {
+    return a == b ? 0 : a > b ? 1 : -1;
+};
+
 
 /** Returns default value for the type */
 export function getDefaultVal(type: any, value: any = undefined): any {
@@ -50,11 +54,11 @@ export function getDefaultVal(type: any, value: any = undefined): any {
 }
 
 /** Returns a map of element bsed on extracted keys  **/
-export function getKeyedMap<T, K, E>(iterable: Iterable<T>, keySelector: (i: T) => K, selElement?: (x: T) => E): Map<K, Array<E>> {
+export function getKeyedMap<T, K, E>(iterable: Iterable<T>, keySelector: (i: T) => K, selElement: (x: T) => E = selfFn): Map<K, Array<E>> {
     let map = new Map<K, Array<E>>();
     for (let value of iterable) {
         let key = keySelector(value);
-        if (!key) throw CONST_INVALID_KEY;
+        if (!key) continue;
         let group: Array<E> = map.get(key);
         if (!group) {
             group = [];
@@ -69,7 +73,7 @@ export function getKeyedMapFast<T, K>(iterable: Iterable<T>, keySelector: (x: T)
     let map = new Map<K, Array<T>>();
     for (let value of iterable) {
         let key = keySelector(value);
-        if (!key) throw CONST_INVALID_KEY;
+        if (!key) continue;
         let group: Array<T> = map.get(key);
         if (!group) {
             group = [];
@@ -84,10 +88,13 @@ export function getKeys<T, K>(iterable: Iterable<T>, keySelector: (x: T) => K): 
     let set = new Set<any>();
     if (keySelector) {
         for (let value of iterable) {
-            set.add(keySelector(value));
+            let key = keySelector(value);
+            if (!key) continue;
+            set.add(key);
         }
     } else {
         for (let value of iterable) {
+            if (!value) continue;
             set.add(value);
         }
     }

@@ -13,11 +13,11 @@
 // under the License.
 
 import {
-    simpleArray, oddArray, jsn, un1, un2, people, pets, mix, phrase
+    simpleArray, oddArray, jsn, un1, un2, people, msdn, pets, mix, phrase
 } from "./data";
 import {assert} from "chai";
 import Linq from "../lib/linq";
-
+import { Enumerable } from "../lib/enumerable";
 
 describe('Deferred Execution -', function () {
 
@@ -65,8 +65,8 @@ describe('Deferred Execution -', function () {
 
     it('ChunkBy() - Index', function () {
 
-        let iterable = Linq(phrase).ChunkBy((o, i) => Math.max(3, i), 
-                                             o => o.value);
+        let iterable = Linq(phrase).ChunkBy((o, i) => Math.max(3, i),
+            o => o.value);
         var iterator = iterable[Symbol.iterator]()
         var arr = iterator.next().value as Array<string>;
         assert.equal(arr.length, 4);
@@ -78,6 +78,34 @@ describe('Deferred Execution -', function () {
         assert.equal(arr.length, 1);
         arr = iterator.next().value as Array<string>;
         assert.equal(arr.length, 1);
+        assert.isTrue(iterator.next().done);
+    });
+
+
+    it('ChunkBy() - Zero', function () {
+
+        let iterable = Linq([{ key: 0, value: "0" },
+                             { key: 0, value: "1" },
+                             { key: 0, value: "2" },
+                             { key: 0, value: "3" },
+                             { key: 0, value: "4" },
+                             { key: 0, value: "5" },
+                             { key: 0, value: "6" },
+                             { key: 0, value: "7" },
+                             { key: 0, value: "!" }])
+            .ChunkBy(k => k.key, o => o.value);
+
+        var iterator = iterable[Symbol.iterator]()
+        var arr = iterator.next().value as Array<string>;
+        assert.equal(arr.length, 9);
+        assert.isTrue(iterator.next().done);
+    });
+
+
+    it('ChunkBy() - Empty', function () {
+
+        let iterable = Linq([]).ChunkBy(e => e);
+        var iterator = iterable[Symbol.iterator]()
         assert.isTrue(iterator.next().done);
     });
 
@@ -110,7 +138,7 @@ describe('Deferred Execution -', function () {
     });
 
     it('Select() - With index', function () {
-        let array = Linq(jsn).Select((a, b) => b).ToArray();
+        let array = Linq(jsn).Select((a: any, b: any) => b).ToArray();
         assert.equal(array.length, 4);
         assert.equal(0, array[0]);
         assert.equal(1, array[1]);
@@ -190,7 +218,7 @@ describe('Deferred Execution -', function () {
     });
 
     it('Where() - Index', function () {
-        let iterable = Linq(simpleArray).Where((a, i) => i % 2 == 1);
+        let iterable = Linq(simpleArray).Where((a: any, i: any) => i % 2 == 1);
         let iterator = iterable[Symbol.iterator]()
         assert.equal(2, iterator.next().value);
         assert.equal(4, iterator.next().value);
@@ -280,6 +308,7 @@ describe('Deferred Execution -', function () {
         var iterator = iterable[Symbol.iterator]()
         assert.equal(1, iterator.next().value.id);
         assert.equal(2, iterator.next().value.id);
+        assert.equal(null, iterator.next().value.id);
         assert.isTrue(iterator.next().done);
     });
 
@@ -300,24 +329,8 @@ describe('Deferred Execution -', function () {
         var iterable = Linq(un1).Intersect(un2, o => o.id );
         var iterator = iterable[Symbol.iterator]()
         assert.equal(3, iterator.next().value.id);
+        assert.equal(3, iterator.next().value.id);
         assert.equal(4, iterator.next().value.id);
-        assert.isTrue(iterator.next().done);
-    });
-
-
-
-    // Except
-
-    it('Except()', function () {
-        var iterable = Linq(simpleArray).Except([0, 2, 4, 6, 11]);
-        var iterator = iterable[Symbol.iterator]()
-        assert.equal(1, iterator.next().value);
-        assert.equal(3, iterator.next().value);
-        assert.equal(5, iterator.next().value);
-        assert.equal(7, iterator.next().value);
-        assert.equal(8, iterator.next().value);
-        assert.equal(9, iterator.next().value);
-        assert.equal(10, iterator.next().value);
         assert.isTrue(iterator.next().done);
     });
 
@@ -405,7 +418,7 @@ describe('Deferred Execution -', function () {
     // Union
 
     it('Union()', function () {
-        var iterable = Linq([0, 1, 2, 3, 4, 5, 6, 7]).Union([5, 6, 7, 8, 9]);
+        var iterable = Linq([0, 1, 2, 2, 3, 4, 5, 6, 7]).Union([5, 6, 6, 7, 8, 9]);
         var iterator = iterable[Symbol.iterator]()
         assert.equal(0, iterator.next().value);
         assert.equal(1, iterator.next().value);
@@ -427,8 +440,10 @@ describe('Deferred Execution -', function () {
         assert.equal(un1[1], iterator.next().value);
         assert.equal(un1[2], iterator.next().value);
         assert.equal(un1[3], iterator.next().value);
+        assert.equal(un1[5], iterator.next().value);
         assert.equal(un2[2], iterator.next().value);
         assert.equal(un2[3], iterator.next().value);
+        assert.equal(un2[5], iterator.next().value);
         assert.isTrue(iterator.next().done);
     });
 
@@ -445,12 +460,32 @@ describe('Deferred Execution -', function () {
                 (person, pet) => {
                     return person.Name + " - " + pet.Name;
                 });
+
         var iterator = iterable[Symbol.iterator]()
         assert.equal("Hedlund, Magnus - Daisy", iterator.next().value);
         assert.equal("Adams, Terry - Barley", iterator.next().value);
         assert.equal("Adams, Terry - Boots", iterator.next().value);
+        assert.equal("Adams, Terry - Barley", iterator.next().value);
+        assert.equal("Adams, Terry - Boots", iterator.next().value);
         assert.equal("Weiss, Charlotte - Whiskers", iterator.next().value);
         assert.isTrue(iterator.next().done);
+    });
+
+
+    it('Join() - Redundant', function () {
+        var iterable =
+            Linq(un1).Join(jsn,  e => e.id, u => u.id,
+                (e, u) => {
+                    return e.name + " - " + u.name;
+                });
+        var iterator = iterable[Symbol.iterator]()
+        assert.equal("q - d", iterator.next().value);
+        assert.equal("w - c", iterator.next().value);
+        assert.equal("e - b", iterator.next().value);
+        assert.equal("e - b", iterator.next().value);
+        assert.equal("r - a", iterator.next().value);
+        assert.isTrue(iterator.next().done);
+        
     });
 
 
@@ -465,11 +500,54 @@ describe('Deferred Execution -', function () {
             (person, petCollection) => {
                 return {
                     Owner: person.Name,
-                    Pets: Linq(petCollection)
-                        .Select(pet => pet.Name)
-                        .ToArray()
+                    Pets: !petCollection ? null 
+                                         : Linq(petCollection).Select(pet => pet.Name)
+                                                              .ToArray()
                 };
             });
+
+        var iterator = iterable[Symbol.iterator]();
+        var result = iterator.next().value;
+        assert.isTrue(Array.isArray(result.Pets))
+        assert.equal("Hedlund, Magnus", result.Owner);
+        assert.equal(1, result.Pets.length);
+        assert.equal("Daisy", result.Pets[0]);
+        result = iterator.next().value;
+        assert.equal("Adams, Terry", result.Owner);
+        assert.equal(2, result.Pets.length);
+        assert.equal("Barley", result.Pets[0]);
+        assert.equal("Boots", result.Pets[1]);
+        result = iterator.next().value;
+        assert.equal("Adams, Terry", result.Owner);
+        assert.equal(2, result.Pets.length);
+        assert.equal("Barley", result.Pets[0]);
+        assert.equal("Boots", result.Pets[1]);
+        result = iterator.next().value;
+        assert.equal(null, result.Owner);
+        assert.equal(null, result.Pets);
+        result = iterator.next().value;
+        assert.equal("Weiss, Charlotte", result.Owner);
+        assert.equal(1, result.Pets.length);
+        assert.equal("Whiskers", result.Pets[0]);
+        result = iterator.next().value;
+        assert.equal(undefined, result.Owner);
+        assert.equal(null, result.Pets);
+        assert.isTrue(iterator.next().done);
+    });
+
+    it('GroupJoin() - MSDN', function () {
+        var iterable = Linq(msdn)
+            .GroupJoin(pets,
+            person => person,
+            pet => pet.Owner,
+            (person, petCollection) => {
+                return {
+                    Owner: person.Name,
+                    Pets: Linq(petCollection).Select(pet => pet.Name)
+                                             .ToArray()
+                };
+            });
+
         var iterator = iterable[Symbol.iterator]();
         var result = iterator.next().value;
         assert.isTrue(Array.isArray(result.Pets))
@@ -488,6 +566,23 @@ describe('Deferred Execution -', function () {
         assert.isTrue(iterator.next().done);
     });
 
+    it('GroupJoin() - QJesus', function () {
+        const yx = [
+            { id: '1', batchNumber: 'ZKFM1' },
+            { id: '2', batchNumber: 'ZKFM' },
+            { id: '3', batchNumber: 'ZKFM1' }
+        ];
+        const zx = [
+            { id: '1', value: 'zzz' },
+            { id: '2', value: 'xxx' },
+        ];
+
+        var join = Linq(yx).GroupJoin(zx, a => a.id, b => b.id, (a, temp) => ({ a, temp }))
+                           .ToArray();
+
+        assert.equal(3, join.length);
+    });
+
 
 
 
@@ -502,7 +597,7 @@ describe('Deferred Execution -', function () {
         assert.equal(1, result.length);
         result = iterator.next().value;
         assert.equal(4, result.key);
-        assert.equal(2, result.length);
+        assert.equal(3, result.length);
         result = iterator.next().value;
         assert.equal(1, result.key);
         assert.equal(1, result.length);
@@ -511,7 +606,7 @@ describe('Deferred Execution -', function () {
 
 
 
-    it('GroupBy() - Selector', function () {
+    it('GroupBy() - Element selector', function () {
         var iterable: any = Linq(pets).GroupBy(pet => pet.Age,
             pet => pet);
 
@@ -521,10 +616,28 @@ describe('Deferred Execution -', function () {
         assert.equal(1, result.length);
         result = iterator.next().value;
         assert.equal(4, result.key);
-        assert.equal(2, result.length);
+        assert.equal(3, result.length);
         result = iterator.next().value;
         assert.equal(1, result.key);
         assert.equal(1, result.length);
+        assert.isTrue(iterator.next().done);
+    });
+
+
+
+    it('GroupBy() - Result selector', function () {
+        var iterable: Enumerable<number> = Linq(pets).GroupBy(
+            pet => pet.Age,
+            pet => pet,
+            (age, group) => age);
+        
+        var iterator = iterable[Symbol.iterator]();
+        var result = iterator.next().value;
+        assert.equal(8, result);
+        result = iterator.next().value;
+        assert.equal(4, result);
+        result = iterator.next().value;
+        assert.equal(1, result);
         assert.isTrue(iterator.next().done);
     });
 

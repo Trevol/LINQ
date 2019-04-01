@@ -102,7 +102,7 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     * @example
     *     var enumerable = asEnumerable([3, 4, 5, 6, 7]).Concat([1,2,8]);
     */
-    Concat<V>(second: Iterable<T>): Enumerable<V>;
+    Concat<V>(second: Iterable<V>): Enumerable<T|V>;
 
     /**
     * Determines whether a sequence contains a specified element by using a 
@@ -184,7 +184,7 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     *     asEnumerable([0, 1, 2, 3, 4, 5, 6, 7]).Intersect([2,3,5]);
     *   // Will return 0, 1, 4, 6, 7
     */
-    Except<K>(other: Iterable<T>, keySelector?: (x: T) => K): Enumerable<T>;
+    Except<V,K>(other: Iterable<V>, keySelector?: (x: T|V) => K): Enumerable<T>;
 
     /**
     * Returns the first element in a sequence that satisfies a specified 
@@ -215,8 +215,9 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     * @example
     *   var e = asEnumerable(pets).GroupBy(pet => pet.Age, pet => pet)
     */
-    GroupBy<K, E, R>(selKey: (x: T) => K, selElement?: (x: T) => E, 
-                     selResult?: (a: K, b: Iterable<E>) => R): Enumerable<R>;
+    GroupBy<K>(selKey: (x: T) => K): Enumerable<IGrouping<K, T>>;
+    GroupBy<K, E>(selKey: (x: T) => K, selElement: (x: T) => E): Enumerable<IGrouping<K, E>>;
+    GroupBy<K, E, R>(selKey: (x: T) => K, selElement: (x: T) => E, selResult: (a: K, b: Iterable<E>) => R): Enumerable<R>;
 
     /** 
     * Correlates the elements of two sequences based on equality of keys and 
@@ -334,7 +335,7 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     *     var e = asEnumerable(jsn).OrderBy(a=> a.name);
     */
     OrderBy<K>(keySelect?: (x: T) => K, 
-               equal?: (a: K, b: K) => number): Enumerable<T>;
+               equal?: (a: K, b: K) => number): OrderedEnumerable<T>;
 
     /** 
     * Sorts the elements of a sequence in descending order by using a specified
@@ -345,35 +346,7 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     *     var e = asEnumerable(jsn).OrderByDescending(a=> a.name);
     */
     OrderByDescending<K>(keySelect?: (x: T) => K, 
-                         equal?: (a: K, b: K) => number): Enumerable<T>;
-
-    /** 
-    * Performs a subsequent ordering of the elements in a sequence in ascending 
-    * order by using a specified comparer. 
-    * @param keySelect A function to extract a key from an element.
-    * @param equal An IComparer<T> to compare keys.
-    * @example
-    *   var iterable: any = asEnumerable(fruits)
-    *                       .OrderBy(fruit=> fruit.length)
-    *                       .ThenBy(fruit=> fruit.charCodeAt(0))
-    *                       .ThenBy(fruit=> fruit.charCodeAt(4));
-    */
-    ThenBy<K>(keySelect?: (x: T) => K, 
-              equal?: (a: K, b: K) => number): Enumerable<T>;
-
-    /** 
-    * Performs a subsequent ordering of the elements in a sequence in descending 
-    * order by using a specified comparer. 
-    * @param keySelect A function to extract a key from an element.
-    * @param equal An IComparer<T> to compare keys.
-    * @example
-    *   var iterable: any = asEnumerable(fruits)
-    *                       .OrderBy(fruit=> fruit.length)
-    *                       .ThenByDescending(fruit=> fruit.charCodeAt(0))
-    *                       .ThenByDescending(fruit=> fruit.charCodeAt(4));
-    */
-    ThenByDescending<K>(keySelect?: (x: T) => K, 
-                        equal?: (a: K, b: K) => number): Enumerable<T>;
+                         equal?: (a: K, b: K) => number): OrderedEnumerable<T>;
 
     /** 
     * Returns count of numbers beginning from start  
@@ -403,22 +376,13 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     /**	
     * Projects each element of a sequence into a new form by incorporating the 
     * element's index. 
-    * @param transform A transform function to apply to each source element
-    * @example
-        var array = asEnumerable([2, 3, 4, 5, 6, 7]).Select((a, idx) => a * idx);
-    */
-    Select<V>(transform: (x: T) => V): Enumerable<V>;
-
-    /**	
-    * Projects each element of a sequence into a new form by incorporating the 
-    * element's index. 
     * @param transform A transform function to apply to each source element; the 
     * second parameter of the function represents the index of the source element.
     * @example
         var array = asEnumerable([0, 1, 2, 3, 4, 5, 6, 7])
                         .Select((a, idx) => a * idx);
     */
-    Select<V>(transform: (x: T, index: number) => V): Enumerable<V>;
+    Select<V>(transform: (x: T, index?: number) => V): Enumerable<V>;
 
     /**
     * Projects each element of a sequence to an Iterable<T>, flattens the
@@ -432,9 +396,20 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
     * @example
     *     var iterable = asEnumerable(jsn).SelectMany(a => a.ids, b => b);
     */
-    SelectMany<S, V>(selector?: (x: T, index: number) => Iterable<S>, 
-                     result?: (x: T, s: S) => V): Enumerable<V>;
+    SelectMany<S, V>(selector: (x: T, index: number) => Iterable<S>, 
+                     result: (x: T, s: S) => V): Enumerable<V>;
 
+    /**
+    * Projects each element of a sequence to an Iterable<T> and flattens the
+    * resulting sequences into one sequence. The index of each source element
+    * is used in the intermediate projected form of that element. 
+    * @param selector A transform function to apply to each source element; the 
+    * second parameter of the function represents the index of the source element.
+    * @example
+    *     var iterable = asEnumerable(jsn).SelectMany(a => a.ids);
+    */
+    SelectMany<S>(selector?: (x: T, index: number) => Iterable<S>): Enumerable<S>;
+    
     /**
     * Determines whether two sequences are equal by comparing their elements
     * by using a specified IEqualityComparer<T>. 
@@ -602,6 +577,41 @@ export interface Enumerable<T> extends Iterable<T>, IEnumerable<T> {
 }
 
 
+export interface OrderedEnumerable<T> extends Enumerable<T>
+{
+    /** 
+    * Performs a subsequent ordering of the elements in a sequence in ascending 
+    * order by using a specified comparer. 
+    * @param keySelect A function to extract a key from an element.
+    * @param equal An IComparer<T> to compare keys.
+    * @example
+    *   var iterable: any = asEnumerable(fruits)
+    *                       .OrderBy(fruit=> fruit.length)
+    *                       .ThenBy(fruit=> fruit.charCodeAt(0))
+    *                       .ThenBy(fruit=> fruit.charCodeAt(4));
+    */
+    ThenBy<K>(keySelect?: (x: T) => K, 
+              equal?: (a: K, b: K) => number): OrderedEnumerable<T>;
+
+    /** 
+    * Performs a subsequent ordering of the elements in a sequence in descending 
+    * order by using a specified comparer. 
+    * @param keySelect A function to extract a key from an element.
+    * @param equal An IComparer<T> to compare keys.
+    * @example
+    *   var iterable: any = asEnumerable(fruits)
+    *                       .OrderBy(fruit=> fruit.length)
+    *                       .ThenByDescending(fruit=> fruit.charCodeAt(0))
+    *                       .ThenByDescending(fruit=> fruit.charCodeAt(4));
+    */
+    ThenByDescending<K>(keySelect?: (x: T) => K, 
+                        equal?: (a: K, b: K) => number): OrderedEnumerable<T>;
+
+}
+
+export interface IGrouping<K, R> extends Array<R> {
+    key: K
+}
 
 //-----------------------------------------------------------------------------
 //  C# compatability interface

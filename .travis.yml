@@ -1,15 +1,15 @@
 sudo: false
 language: node_js
 
-node_js: node
+node_js: "node"
 
 install:
-- npm install -g typescript
 - npm install -g istanbul
 - npm install -g remap-istanbul
 - npm install -g coveralls
 - npm install mocha-lcov-reporter
-- npm install
+#- npm install yarn
+- yarn install
 
 script: 
 - npm run build

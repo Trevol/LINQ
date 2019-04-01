@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "module": "umd",
+    "module": "commonjs",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "removeComments": false,
@@ -10,6 +10,7 @@
   },
   "exclude": [
     ".c9",
+    ".vs",
     ".vscode",
     ".git",
     "dist",

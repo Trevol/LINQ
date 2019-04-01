@@ -1,10 +1,10 @@
 {
   "name": "linq-es2015",
-  "version": "2.4.3",
+  "version": "2.4.33",
   "description": "Complete implementation of Language-Integrated Query (LINQ) (ECMAScript 2015 Language Specification)",
   "main": "lib/linq.js",
   "typings": "lib/linq.d.ts",
-  "tonicExampleFilename": "dist/example.js",
+  "tonicExampleFilename": "./dist/example.js",
   "homepage": "https://github.com/ENikS/LINQ/wiki",
   "author": {
     "name": "Eugene Sadovoi",
@@ -78,10 +78,12 @@
     "url": "https://github.com/ENikS/Linq.git"
   },
   "devDependencies": {
-    "browserify": "^13.0.1",
-    "chai": "^3.2.0",
+    "browserify": "^16.0.0",
+    "chai": "^4.1.2",
     "jsmin": "^1.0.1",
-    "mocha": "^2.5.3"
+    "latest": "^0.2.0",
+    "mocha": "^6.0.0",
+    "typescript": "^2.7.2"
   },
   "scripts": {
     "build:ts": "tsc",
